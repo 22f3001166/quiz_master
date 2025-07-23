@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 from datetime import datetime, date
 from sqlalchemy.sql import func
-
+from sqlalchemy import Enum
 
 app= Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///quizmaster.db'
@@ -106,12 +106,12 @@ class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # Add primary key for consistency
     quiz_id = db.Column(db.Integer, db.ForeignKey("quiz.id"), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey("subject.id"), nullable=False)  # Link to subject
-    Statement = db.Column(db.Text, nullable=False)
+    statement = db.Column(db.Text, nullable=False)
     option_a = db.Column(db.String(255), nullable=False)
     option_b = db.Column(db.String(255), nullable=False)
     option_c = db.Column(db.String(255), nullable=False)
     option_d = db.Column(db.String(255), nullable=False)
-    correct_answer = db.Column(db.String(1), nullable=False)  # A, B, C, or D
+    correct_answer = db.Column(Enum("A", "B", "C", "D", name="answer_option"), nullable=False)
     marks = db.Column(db.Integer, default=1, nullable=False)
 
     def to_dict(self):
@@ -119,7 +119,7 @@ class Question(db.Model):
             "id": self.id,
             "quiz_id": self.quiz_id,
             "subject_id": self.subject_id,
-            "statement": self.Statement,
+            "statement": self.statement,
             "option_a": self.option_a,
             "option_b": self.option_b,
             "option_c": self.option_c,
@@ -143,9 +143,9 @@ class Answer(db.Model):
     score_id = db.Column(db.Integer, db.ForeignKey('score.id'), nullable=False)
     
     # Relationships
-    user = db.relationship("User", backref="answers")
-    quiz = db.relationship("Quiz", backref="answers")
-    question = db.relationship("Question", backref="answers")
+    user = db.relationship("User", backref="answers", lazy=True)
+    quiz = db.relationship("Quiz", backref="answers", lazy='select')
+    question = db.relationship("Question", backref="answers", lazy='select')
     
 
     def to_dict(self):
@@ -169,7 +169,7 @@ class Score(db.Model):
 
     time_stamp_of_attempt = db.Column(db.DateTime, nullable=False)
     time_taken = db.Column(db.Integer, nullable=False)  # in seconds
-    # usertotal_attempts = db.Column(db.Integer, nullable=False) # to dynamically store the no. of attempts for a particular quiz by all user
+    usertotal_attempts = db.Column(db.Integer, nullable=False) # to dynamically store the no. of attempts for a particular quiz by particular user_id
     # total_attemptes= db.Column(db.Integer, nullable=False) # to dynamically store the number of attempts for a particular quiz by all user 
 
     total_attempted = db.Column(db.Integer, nullable=False) # questions attempts in a particular quiz
@@ -184,6 +184,7 @@ class Score(db.Model):
     grace = db.Column(db.Float, nullable=False, default=0)
 
     quiz = db.relationship("Quiz", backref="scores")
+    user = db.relationship("User", backref="scores")
 
     def __repr__(self):
         return f"<Score User {self.user_id} - Quiz {self.quiz_id} - {self.total_scored}/{self.quiz_score}>"
