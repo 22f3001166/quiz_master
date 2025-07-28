@@ -1,1 +1,1 @@
-# quiz_master
+# Gurmukhi Quiz App
