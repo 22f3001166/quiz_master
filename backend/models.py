@@ -34,7 +34,8 @@ class User(db.Model):
             "dob": self.dob.isoformat() if self.dob else None,
             "timezone": self.timezone,
             "qualification": self.qualification,
-            "active": self.active
+            "active": self.active,
+            "scores": [score.to_dict() for score in self.scores]
         }
     def __repr__(self):
         return f"<User {self.email}({self.role})>"
@@ -200,8 +201,9 @@ class Score(db.Model):
             "quiz_score": self.quiz_score,
             "percentage_score": self.percentage_score,
             "accuracy": self.accuracy,
-            "grace": self.grace
-        }
+            "grace": self.grace,
+            "quiz": self.quiz.to_dict()
+        }   
 
 
 with app.app_context():
