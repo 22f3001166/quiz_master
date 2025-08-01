@@ -14,7 +14,8 @@
   </template>
 
 <script>
-import { loginUser } from "@/api"; 
+
+import axios from "axios";
 
 export default {
   name: "UserLogin",
@@ -29,11 +30,11 @@ export default {
     };
   },
   methods: {
-    async login() {
+    async login(this.email, this.password) {
       try {
-        const response = await loginUser(this.email, this.password);
-        const {token} = response.data;
-        // localStorage.setItem('token',token); 
+      const response = await axios.post("http://127.0.0.1:5000/api/login", { this.email, this.password });
+        };
+        const {token} = response.data; 
         await this.$store.dispatch("login", { 'token': token });
         this.$router.push("/dashboard");
         }
